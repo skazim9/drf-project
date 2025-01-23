@@ -5,7 +5,8 @@ from material.apps import MaterialConfig
 from material.views import (CourseViewSet, LessonCreteAPIView,
                            LessonUpdateAPIView, LessonListAPIView,
                            LessonDestroyAPIView, LessonRetrieveAPIView)
-app_name = MaterialConfig.name
+
+app_name = 'material'
 
 router = DefaultRouter()
 router.register(r'course', CourseViewSet, basename='course')
