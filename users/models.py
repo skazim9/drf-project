@@ -24,7 +24,11 @@ class User(AbstractUser):
         return self.email
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["username"]
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
 
 
 class Payment(models.Model):
@@ -33,16 +37,47 @@ class Payment(models.Model):
         ("transfer", "Перевод на счет"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    payment_date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="payments",
+        null=True,
+        blank=True,
+        verbose_name="Пользователь",
+    )
+    payment_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата платежа")
     paid_course = models.ForeignKey(
-        Course, null=True, blank=True, on_delete=models.CASCADE
+        Course,
+        on_delete=models.SET_NULL,
+        related_name="payments",
+        null=True,
+        blank=True,
+        verbose_name="Оплачиваемый курс",
     )
     paid_lesson = models.ForeignKey(
-        Lesson, null=True, blank=True, on_delete=models.CASCADE
+        Lesson,
+        on_delete=models.SET_NULL,
+        related_name="payments",
+        null=True,
+        blank=True,
+        verbose_name="Оплачиваемый урок",
     )
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHODS)
+    amount = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name="Сумма платежа"
+    )
+    session_id = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name="ID сессии"
+    )
+    payment_method = models.CharField(
+        max_length=10, choices=PAYMENT_METHODS, verbose_name="Метод платежа"
+    )
+    payment_link = models.URLField(
+        max_length=400, null=True, blank=True, verbose_name="Ссылка на платеж"
+    )
 
     def __str__(self):
         return f"Payment of {self.amount} by {self.user.email} on {self.payment_date}"
+
+    class Meta:
+        verbose_name = "Платеж"
+        verbose_name_plural = "Платежи"

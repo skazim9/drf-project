@@ -5,7 +5,6 @@ from urllib.parse import urlparse
 def validate_video_link(value):
     parsed_url = urlparse(value)
 
-
     if not (parsed_url.scheme and parsed_url.path):
         raise ValidationError("Ссылка некорректна.")
     if (

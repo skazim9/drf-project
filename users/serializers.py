@@ -4,9 +4,14 @@ from django.contrib.auth.models import User
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    product_type = serializers.ChoiceField(
+        choices=[("course", "Course"), ("lesson", "Lesson")]
+    )
+    product_id = serializers.IntegerField()
+
     class Meta:
         model = Payment
-        fields = "__all__"
+        fields = ["product_type", "product_id", "amount", "session_id", "payment_link"]
 
 
 class UserSerializer(serializers.ModelSerializer):
