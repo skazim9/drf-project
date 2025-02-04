@@ -23,8 +23,13 @@ class CourseViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def check_moderator_access(self):
-        if not (self.request.user.groups.filter(name="moderators").exists() or self.request.user.is_staff):
-            raise PermissionDenied("У вас недостаточно прав для доступа к этому ресурсу.")
+        if not (
+            self.request.user.groups.filter(name="moderators").exists()
+            or self.request.user.is_staff
+        ):
+            raise PermissionDenied(
+                "У вас недостаточно прав для доступа к этому ресурсу."
+            )
 
     def get_queryset(self):
 
@@ -47,11 +52,14 @@ class LessonViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated()]
         return super().get_permissions()
 
-
     def check_moderator_access(self):
-        if not (self.request.user.groups.filter(name="moderators").exists() or self.request.user.is_staff):
-            raise PermissionDenied("У вас недостаточно прав для доступа к этому ресурсу.")
-
+        if not (
+            self.request.user.groups.filter(name="moderators").exists()
+            or self.request.user.is_staff
+        ):
+            raise PermissionDenied(
+                "У вас недостаточно прав для доступа к этому ресурсу."
+            )
 
     def get_queryset(self):
         self.check_moderator_access()
@@ -63,6 +71,7 @@ class LessonViewSet(viewsets.ModelViewSet):
 
 class SubscriptionView(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, request):
         user = request.user
         course_id = request.data.get("course_id")
