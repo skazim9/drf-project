@@ -1,17 +1,14 @@
-from rest_framework import generics, filters, viewsets, permissions, status
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.response import Response
-from material.models import Course, Lesson
-from .models import Payment
-from .serializers import PaymentSerializer
 from django.contrib.auth import get_user_model
-from .serializers import UserSerializer
-from .services import (
-    create_product_course,
-    create_price,
-    create_checkout_session,
-    create_product_lesson,
-)
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics, permissions, status, viewsets
+from rest_framework.response import Response
+
+from material.models import Course, Lesson
+
+from .models import Payment
+from .serializers import PaymentSerializer, UserSerializer
+from .services import (create_checkout_session, create_price,
+                       create_product_course, create_product_lesson)
 
 User = get_user_model()
 

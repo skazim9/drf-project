@@ -1,13 +1,15 @@
-from rest_framework import viewsets, permissions
-from .models import Course, Lesson, Subscription
-from .serializers import CourseSerializer, LessonSerializer
-from .permissions import IsModerator
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from .paginations import CustomPagination
+from rest_framework import permissions, status, viewsets
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Course, Lesson, Subscription
+from .paginations import CustomPagination
+from .permissions import IsModerator
+from .serializers import CourseSerializer, LessonSerializer
+from .tasks import send_email_task
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -72,15 +74,20 @@ class LessonViewSet(viewsets.ModelViewSet):
 class SubscriptionView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    @staticmethod
+    def post(request):
         user = request.user
         course_id = request.data.get("course_id")
         course_item = get_object_or_404(Course, id=course_id)
         subs_item = Subscription.objects.filter(user=user, course=course_item)
+        subject = "Спасибо за подписку!"
+        email_message = f"Благодарим вас за подписку на курс: {course_item.title}."
+        message = "Подписка добавлена"
+
         if subs_item.exists():
             subs_item.delete()
             message = "Подписка удалена"
         else:
             Subscription.objects.create(user=user, course=course_item)
-            message = "Подписка добавлена"
-        return Response({"message": message})
+            send_email_task.delay(user.email, subject, email_message)
+        return Response({"message": message}, status=status.HTTP_200_OK)
