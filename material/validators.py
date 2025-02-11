@@ -1,5 +1,6 @@
-from rest_framework.validators import ValidationError
 from urllib.parse import urlparse
+
+from rest_framework.validators import ValidationError
 
 
 def validate_video_link(value):
