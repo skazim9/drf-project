@@ -1,33 +1,46 @@
-version: '3.9'
-
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/app
-    ports:
-      - "8000:8000"
+      - static_volume:/app/staticfiles
+    expose:
+      - "8000"
     depends_on:
       - db
+      - redis
+    env_file: .env
+
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/app/staticfiles
+    depends_on:
+      - web
 
   db:
     image: postgres:17
-    environment:
-      POSTGRES_DB: ${NAME}
-      POSTGRES_USER: ${USER}
-      POSTGRES_PASSWORD: ${PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    env_file:
-      - ./.env
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
 
   redis:
-    image: redis:alpine
+    image: redis:7
+    volumes:
+      - redis_data:/data
+    env_file: .env
 
   celery:
     build: .
-    command: celery -A app worker -l info -p eventlet
+    command: celery -A config.celery worker -l info
     depends_on:
       - redis
       - db
@@ -35,7 +48,7 @@ services:
 
   celery-beat:
     build: .
-    command: celery -A app beat -l info
+    command: celery -A config.celery beat -l info
     depends_on:
       - redis
       - db
@@ -43,4 +56,5 @@ services:
 
 volumes:
   postgres_data:
-
+  static_volume:
+  redis_data:
